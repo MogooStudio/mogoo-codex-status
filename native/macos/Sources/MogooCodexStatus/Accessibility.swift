@@ -21,8 +21,8 @@ enum Accessibility {
     }
     static func desktopInfo() -> [String: Any] {
         let apps = codexApplications()
-        guard let app = apps.first(where: { $0.isActive }) ?? apps.first else { return ["pid": 0] }
-        return ["pid": Int(app.processIdentifier), "bundlePath": app.bundleURL!.path]
+        guard let app = apps.first(where: { $0.isActive }) ?? apps.first, let bundle = app.bundleURL else { return ["pid": 0] }
+        return ["pid": Int(app.processIdentifier), "bundlePath": bundle.path]
     }
     static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
         var value: CFTypeRef?
@@ -60,8 +60,9 @@ enum Accessibility {
             let (item, depth) = queue.removeFirst(); seen += 1
             let role = value(item, kAXRoleAttribute) as? String ?? ""
             if role == "AXWebArea" && result.title.isEmpty { result.title = value(item, kAXTitleAttribute) as? String ?? "" }
-            if [kAXButtonRole, kAXPopUpButtonRole].contains(role) {
-                let label = value(item, kAXTitleAttribute) as? String ?? value(item, kAXDescriptionAttribute) as? String ?? ""
+            if [kAXButtonRole, kAXPopUpButtonRole, "AXMenuButton"].contains(role) {
+                let labels = [value(item, kAXTitleAttribute) as? String ?? "", value(item, kAXDescriptionAttribute) as? String ?? ""]
+                let label = labels.first(where: { !$0.isEmpty }) ?? ""
                 if modeNames.contains(label) { result.codexMode = true }
             }
             if depth < 14, let children = value(item, kAXChildrenAttribute) as? [AXUIElement] {

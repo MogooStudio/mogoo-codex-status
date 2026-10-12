@@ -73,7 +73,7 @@ final class DragSurface: NSView {
         if event.clickCount == 2 { model?.refresh(); return }
         guard let model, let window else { return }
         model.dragging = true
-        window.performWindowDrag(with: event)
+        window.performDrag(with: event)
         model.dragging = false; model.finishDrag()
     }
 }
