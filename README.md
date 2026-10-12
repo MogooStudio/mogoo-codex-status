@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-Author: **mogoo**
+Author: **mogoo** · Website: [mogoo-codex-status](https://github.com/MogooStudio/mogoo-codex-status)
 
 ![Status strip preview](docs/images/status-strip.png)
 
@@ -17,27 +17,43 @@ A Windows status strip for Codex: context usage, quota percentages, and reset co
 - Click the left status icon to collapse or expand directly. The 140×28px capsule shows only that icon and “Codex Status”; hover over the label for live metric details. Drag the text or empty space to dock. Mode persists independently of skin; switching keeps the left position unless expansion reaches the window edge. The menu remains available for skins and an alternative mode switch.
 - Local statistics and read-only quota queries. The bundled hooks only launch the strip; they do not retain prompts, read the supplied transcript path, or add chat context. No model generation, chat messages, authentication-file reads, or modifications to Codex installation files. Quota App Server runs with hooks disabled.
 
-Requires Windows 10/11 x64, .NET Framework 4.8, and Node.js 22.13+.
+## Install
+
+Give this prompt to an agent that can install Codex plugins:
+
+```text
+Please install this Codex plugin: https://github.com/MogooStudio/mogoo-codex-status
+```
+
+Or run in your terminal:
+
+```powershell
+codex plugin marketplace add MogooStudio/mogoo-codex-status --json
+codex plugin add mogoo-codex-status@mogoo-codex-status --json
+```
+
+Requires Codex with the `codex plugin` commands, Git, Windows 10/11 x64, .NET Framework 4.8, and Node.js 22.13+. The plugin includes the built native strip and service; no manual clone, pnpm, or build is needed for installation. See the [plugin guide (Chinese)](codex/PLUGIN-README.md) for updates, migration, and removal.
+
+## Usage
+
+Review and trust the installed plugin's SessionStart and UserPromptSubmit hooks once. See the [official hook documentation](https://learn.chatgpt.com/docs/hooks). The first ordinary message prepares `%LOCALAPPDATA%\mogoo-codex-status\app` and launches the strip; subsequent messages reuse the running instance. SessionStart supplements this for startup/resume. Opening only the home screen is not guaranteed to launch it.
+
+The automatic instance closes with its owning Codex desktop process. The plugin does not register Run values, Startup-folder shortcuts, scheduled tasks, services, or external startup watchers. `prepare` updates the runtime without launching it; `install` prepares, enables chat-triggered launching, and opens it immediately.
+
+Ask Codex to manage `mogoo-codex-status` when you need to pause, resume, or remove it. Settings are preserved. Exiting from the strip's menu only closes the current instance. `hook-status.json` keeps only the latest launch metadata.
+
+## Development
 
 ```powershell
 pnpm build
 pnpm test
-node scripts/control.mjs install
+pnpm test:drag
+pnpm test:skins
+pnpm marketplace:sync
+pnpm marketplace:check
 ```
 
-Install the plugin, then review and trust its SessionStart and UserPromptSubmit hooks once. See the [official hook documentation](https://learn.chatgpt.com/docs/hooks). The first ordinary message prepares `%LOCALAPPDATA%\mogoo-codex-status\app` and launches the strip; subsequent messages reuse the running instance. SessionStart supplements this for startup/resume. Opening only the home screen is not guaranteed to launch it.
-
-The automatic instance closes with its owning Codex desktop process. The plugin does not register Run values, Startup-folder shortcuts, scheduled tasks, services, or external startup watchers. `prepare` updates the runtime without launching it; `install` prepares, enables chat-triggered launching, and opens it immediately.
-
-```powershell
-node scripts/control.mjs uninstall
-```
-
-Uninstall stops the strip and disables future chat-triggered launching; settings are preserved. `stop` also pauses automatic launching; `start` resumes it. Exiting from the strip's menu only closes the current instance. `inspect` reports visible conversation detection, while `status` reports local runtime state. `hook-status.json` keeps only the latest launch metadata.
-
-Disabling or uninstalling the Codex plugin removes future triggers but may leave an existing instance running. Run the runtime uninstall command first when removing the plugin.
-
-Build uses the Windows .NET Framework compiler; no dotnet SDK or frontend dependency installation needed. Generate bundled plugin files with `pnpm marketplace:sync`, then verify with `pnpm marketplace:check`.
+Build uses the Windows .NET Framework compiler; no dotnet SDK or frontend dependency installation is needed. After changing source or plugin instructions, build and run `pnpm marketplace:sync`, then commit the generated `plugins/mogoo-codex-status/` and `.agents/plugins/marketplace.json` together. Verify them with `pnpm marketplace:check`; do not edit generated files directly.
 
 Local session formats are version-dependent. Context is the last reported approximate occupancy, not a live per-character value. Duplicate titles remain unknown. Narrow windows may collapse reset text. This is an external overlay, not an injected native Codex status bar. See the [Chinese guide](README.zh-CN.md) for details.
 

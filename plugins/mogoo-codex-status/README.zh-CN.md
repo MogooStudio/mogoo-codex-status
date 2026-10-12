@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-作者：**mogoo**
+作者：**mogoo** · 网站：[mogoo-codex-status](https://github.com/MogooStudio/mogoo-codex-status)
 
 ![状态条预览](docs/images/status-strip.png)
 
@@ -26,28 +26,30 @@ Windows 10/11 x64、.NET Framework 4.8 和 Node.js 22.13+。开发构建使用 W
 
 ## 安装
 
-在支持本地插件市场的 Codex 中安装此仓库的 `mogoo-codex-status` 插件，然后在 Hook 审核入口一次性信任正式插件的 SessionStart 和 UserPromptSubmit 两条 Hook。之后发普通消息即可自动准备运行文件并启动状态条；运行中会直接复用单实例。审核规则见 [OpenAI 官方 Hook 文档](https://learn.chatgpt.com/docs/hooks)。
+把这句话交给支持安装 Codex 插件的 Agent：
+
+```text
+请帮我安装这个 Codex 插件：https://github.com/MogooStudio/mogoo-codex-status
+```
+
+或者在终端运行：
+
+```powershell
+codex plugin marketplace add MogooStudio/mogoo-codex-status --json
+codex plugin add mogoo-codex-status@mogoo-codex-status --json
+```
+
+需要支持 `codex plugin` 命令的 Codex、Git、Windows 10/11 x64、.NET Framework 4.8 和 Node.js 22.13+。插件内置构建好的原生状态条和后台服务，安装时无需手动克隆、pnpm 或构建。更新、从本地市场迁移与卸载见[插件说明](README.md)。
+
+## 使用
+
+安装后，在 Hook 审核入口一次性信任正式插件的 SessionStart 和 UserPromptSubmit 两条 Hook，然后正常聊天即可。首次普通消息会自动准备运行文件并启动状态条，运行中直接复用单实例。审核规则见 [OpenAI 官方 Hook 文档](https://learn.chatgpt.com/docs/hooks)。
 
 SessionStart 对开始或恢复会话提供补充触发；保证的日常入口是普通消息，不承诺仅打开首页就立即显示。启动器不记录消息正文，不读取 Hook 传入的聊天记录路径，也不向聊天添加内容。账号限额查询使用禁用 Hook 的 App Server，避免递归启动。
 
-本地开发或直接安装：
-
-```powershell
-pnpm build
-node scripts/control.mjs install
-```
-
 运行文件保存到 `%LOCALAPPDATA%\mogoo-codex-status\app`，设置和统计保存在上层目录。自动启动实例绑定发起启动的 Codex 桌面进程，该进程退出时状态条和它的统计后台一起退出。插件不会注册 Windows Run 项、启动文件夹、计划任务或服务，也没有登录后运行的监控器。插件更新后可运行 `prepare` 更新稳定运行目录，或让下一次聊天触发自动更新。
 
-关闭聊天事件自动启动并停止后台组件：
-
-```powershell
-node scripts/control.mjs uninstall
-```
-
-保留设置和运行文件。`stop` 同样暂停后续聊天自动启动，`start` 恢复。右键“退出状态条”只结束当前实例，后续消息可再次拉起。
-
-Codex 中禁用或卸载插件会移除后续聊天事件触发，但不能保证立即停止已运行实例；移除时先执行上述 `uninstall`。
+需要暂停、恢复或卸载时，在聊天中要求管理 `mogoo-codex-status` 即可；这些操作会保留皮肤、模式和位置设置。右键“退出状态条”只结束当前实例，后续消息可再次拉起。
 
 ## 开发与验证
 
@@ -61,7 +63,7 @@ pnpm marketplace:sync
 pnpm marketplace:check
 ```
 
-`plugins/mogoo-codex-status/` 和 `.agents/plugins/marketplace.json` 由源码与原生构建生成，插件内置可执行状态条和无第三方依赖的 Node 后台服务。
+修改源码或插件说明后，先运行 `pnpm build`，再运行 `pnpm marketplace:sync`，将生成的 `plugins/mogoo-codex-status/` 与 `.agents/plugins/marketplace.json` 一起提交。分发文件由源码生成，不要直接编辑；GitHub 安装使用这些内置运行文件。
 
 拖动回归检查覆盖按住不动、移动后停住、松手和捕获丢失、多 DPI 下的位置保存与顶部吸附、左右边界收回，以及按住时暂停自动定位、松手后恢复。检查使用隐藏的测试窗口，不移动用户鼠标。
 
@@ -73,7 +75,7 @@ pnpm marketplace:check
 - 本地 `state_*.sqlite`、`session_index.jsonl` 和聊天记录格式不是稳定公共接口，升级可能需要适配。SQLite 始终以只读方式打开。
 - 上下文来自最近一次 `token_count` 上报，不是每个生成字符的实时值，也不保证与 Codex 原生保留空间计算完全一致。缺失数据不会当成 0%。
 - 可见标题重名时保留未知状态，不根据最近更新时间猜聊天。多个窗口时优先前台窗口；无法确定窗口时隐藏。
-- 窄窗口中可能收起重置文字或进度条，悬停查看完整信息。页面显示完整窗口数据时最多同时展示两个限额窗口；更多窗口在完整状态数据中保留。
+- 窄窗口中可能收起重置文字，悬停查看完整信息。页面显示完整窗口数据时最多同时展示两个限额窗口；更多窗口在完整状态数据中保留。
 - 本版是 Windows 悬浮条，未向 Codex 原生界面注入元素。支持中文和英文的 Codex 模式标识；其他语言需适配。
 
 [MIT](LICENSE)

@@ -9,7 +9,7 @@ assert.equal(manifest.name,pkg.name);assert.equal(manifest.version,pkg.version);
 const check=process.argv.includes('--check');const plugin=path.join(root,'plugins',pkg.name);
 const catalog={name:pkg.name,interface:{displayName:pkg.name},plugins:[{name:pkg.name,source:{source:'local',path:`./plugins/${pkg.name}`},policy:{installation:'AVAILABLE',authentication:'ON_INSTALL'},category:'Developer Tools'}]};
 // The current Codex client discovers bundled hooks through the native manifest.
-const overlay={name:pkg.name,version:pkg.version,description:manifest.description,author:manifest.author,license:pkg.license,skills:'./skills/',hooks:'./hooks/hooks.json',interface:manifest.extensions['com.openai'].interface};
+const overlay={name:pkg.name,version:pkg.version,description:manifest.description,author:manifest.author,homepage:manifest.homepage,repository:manifest.repository,license:pkg.license,skills:'./skills/',hooks:'./hooks/hooks.json',interface:manifest.extensions['com.openai'].interface};
 const files=new Map([['.codex-plugin/plugin.json',Buffer.from(JSON.stringify(overlay,null,2)+'\n')],['package.json',Buffer.from(JSON.stringify({...pkg,scripts:{}},null,2)+'\n')]]);
 async function collect(source,prefix,skip=()=>false) {for(const entry of await readdir(source,{withFileTypes:true})) {if(skip(entry.name))continue;const full=path.join(source,entry.name),dest=path.posix.join(prefix,entry.name);if(entry.isSymbolicLink())throw new Error('Symlink not supported');if(entry.isDirectory())await collect(full,dest,skip);else files.set(dest,await readFile(full));}}
 await collect(path.join(root,'bin'),'bin');await collect(path.join(root,'server'),'server');
@@ -18,7 +18,9 @@ await collect(path.join(root,'codex','skills'),'skills');await collect(path.join
 await collect(path.join(root,'codex','hooks'),'hooks');
 await collect(path.join(root,'docs','images'),'docs/images');
 files.set('docs/skin-preview.html',await readFile(path.join(root,'docs','skin-preview.html')));
-files.set('README.md',await readFile(path.join(root,'README.md')));files.set('README.zh-CN.md',await readFile(path.join(root,'README.zh-CN.md')));files.set('LICENSE',await readFile(path.join(root,'LICENSE')));
+files.set('README.md',await readFile(path.join(root,'codex','PLUGIN-README.md')));
+files.set('README.zh-CN.md',Buffer.from((await readFile(path.join(root,'README.zh-CN.md'),'utf8')).replaceAll('](codex/PLUGIN-README.md)','](README.md)')));
+files.set('LICENSE',await readFile(path.join(root,'LICENSE')));
 async function onDisk(directory,prefix='') {const names=[];for(const entry of await readdir(directory,{withFileTypes:true})) {const rel=path.posix.join(prefix,entry.name);if(entry.isDirectory())names.push(...await onDisk(path.join(directory,entry.name),rel));else names.push(rel);}return names.sort();}
 if(check) {
   assert.deepEqual(await onDisk(plugin),[...files.keys()].sort());

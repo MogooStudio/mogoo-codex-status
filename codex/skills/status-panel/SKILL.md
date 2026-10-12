@@ -7,6 +7,8 @@ description: 安装、启停、更新或诊断 mogoo-codex-status 常驻状态�
 
 从本技能所在位置向上三级定位安装插件根目录，确认存在 `scripts/control.mjs`、`server/` 和 `bin/MogooCodexStatus.exe`。使用安装副本，不调用开发仓库或在插件缓存中构建。
 
+新安装与更新采用 GitHub 自定义市场，与 mogoo-codex-git 一致：`codex plugin marketplace add MogooStudio/mogoo-codex-status --json`，再执行 `codex plugin add mogoo-codex-status@mogoo-codex-status --json`。同名市场指向本地目录时，先只移除该市场注册，再添加 GitHub 来源。更新使用 `codex plugin marketplace upgrade mogoo-codex-status --json` 和重新安装命令。完整步骤见插件根的 `README.md`，无需让用户手动克隆或构建。
+
 本版支持 Windows，需 Node.js 22.13+。日常由插件内置的 SessionStart（startup/resume）和 UserPromptSubmit Hook 自动拉起；两条 Hook 须经用户一次性审核信任。普通消息会复用已运行的状态条，不向聊天注入输出。以实际 Node 可执行文件运行 `<插件根>/scripts/control.mjs`：
 
 - 用户要求安装或完成插件设置：执行 `install`，复制运行文件到 LocalAppData、启用聊天事件自动启动并立即启动。只准备运行文件、不立即显示时执行 `prepare`。用户信任 Hook 后，首次普通消息也能自动准备组件。
