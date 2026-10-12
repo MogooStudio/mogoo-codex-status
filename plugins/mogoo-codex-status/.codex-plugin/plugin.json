@@ -1,6 +1,6 @@
 {
   "name": "mogoo-codex-status",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "自动常驻显示 Codex 当前聊天上下文占用、账号限额百分比及重置倒计时。",
   "author": {
     "name": "mogoo"

@@ -11,6 +11,7 @@ using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -144,6 +145,7 @@ namespace MogooCodexStatus {
     readonly ColumnDefinition firstGap=new ColumnDefinition(),secondGap=new ColumnDefinition();
     readonly DragMotion drag=new DragMotion();readonly Border dragSurface;IntPtr dragParent;
     readonly bool previewMode;readonly Button skinButton=new Button();readonly Border buttonFace=new Border();readonly ContextMenu menu=new ContextMenu();
+    double menuAnchorX;IntPtr menuParent;
     readonly List<MenuItem> skinChoices=new List<MenuItem>();readonly ScaleTransform buttonScale=new ScaleTransform(1,1);
     readonly RotateTransform skinTurn=new RotateTransform();
     readonly Grid fullView=new Grid();readonly StackPanel compactView=new StackPanel();
@@ -207,6 +209,13 @@ namespace MogooCodexStatus {
       foreach(var choice in StatusSkin.All) {var selectedSkin=choice;var item=new MenuItem {Header=choice.Name,IsCheckable=true};item.Click+=delegate {ChangeSkin(selectedSkin);};skinChoices.Add(item);menu.Items.Add(item);}
       menu.Items.Add(new Separator());menu.Items.Add(modeChoice);modeChoice.Click+=delegate {ChangeDisplayMode(!compactMode);};
       menu.Items.Add(new Separator());var exit=new MenuItem {Header="退出状态条"};exit.Click+=delegate {Close();};menu.Items.Add(exit);border.ContextMenu=menu;
+      menu.PlacementTarget=border;menu.Placement=PlacementMode.Custom;menu.CustomPopupPlacementCallback=MenuPlacement;
+      border.ContextMenuOpening+=delegate(object sender,ContextMenuEventArgs e) {
+        menuAnchorX=e.CursorLeft>=0 ? Mouse.GetPosition(border).X : border.ActualWidth/2;
+        menuParent=new IntPtr((long)Json.Number(selection,"hwnd"));EndDrag(true);
+      };
+      menu.Opened+=delegate {EndDrag(true);Dispatcher.BeginInvoke(DispatcherPriority.Loaded,new Action(RaiseMenu));};
+      menu.Closed+=delegate {menuParent=IntPtr.Zero;};
       ApplySkin(StatusSkin.Find(Json.Text(config,"skin")),false);
       ApplyDisplayMode(Json.Text(config,"displayMode")=="compact",false);
       SourceInitialized+=delegate {
@@ -218,7 +227,18 @@ namespace MogooCodexStatus {
         if(!preview) {StartWorker();Task.Run((Action)Collect);}
         timer.Interval=TimeSpan.FromMilliseconds(500);timer.Tick+=delegate {Tick(preview);};timer.Start();Tick(preview);
       };
-      Closed+=delegate {ending=true;EndDrag(false);timer.Stop();try {if(worker!=null && !worker.HasExited) {worker.StandardInput.WriteLine("stop");if(!worker.WaitForExit(2500))worker.Kill();}}catch{} if(desktop!=null)desktop.Dispose();};
+      Closed+=delegate {ending=true;menu.IsOpen=false;EndDrag(false);timer.Stop();try {if(worker!=null && !worker.HasExited) {worker.StandardInput.WriteLine("stop");if(!worker.WaitForExit(2500))worker.Kill();}}catch{} if(desktop!=null)desktop.Dispose();};
+    }
+    CustomPopupPlacement[] MenuPlacement(Size popup,Size target,Point offset) {
+      double x=Math.Max(0,Math.Min(Math.Max(0,target.Width-popup.Width),menuAnchorX));
+      return new [] {
+        new CustomPopupPlacement(new Point(x,target.Height+6),PopupPrimaryAxis.Horizontal),
+        new CustomPopupPlacement(new Point(x,-popup.Height-6),PopupPrimaryAxis.Horizontal)
+      };
+    }
+    void RaiseMenu() {
+      if(!menu.IsOpen)return;var source=PresentationSource.FromVisual(menu) as HwndSource;
+      if(source!=null)Native.SetWindowPos(source.Handle,new IntPtr(-1),0,0,0,0,0x13); // Keep the popup above the strip without moving or activating it.
     }
     bool Animations {get {return !previewMode && SystemParameters.ClientAreaAnimation;}}
     void SetupModeButton(Button button,Border face,System.Windows.Shapes.Path glyph,ScaleTransform scale) {
@@ -400,6 +420,16 @@ namespace MogooCodexStatus {
         if(desktopGone) {Json.Write(Path.Combine(dataDir,"runtime.json"),new {visible=false,reason="codex-exited",pid=Process.GetCurrentProcess().Id,desktopPid=desktopPid,updatedAt=DateTime.UtcNow.ToString("o")});Close();return;}
       }
       if(File.Exists(Path.Combine(dataDir,"stop.signal"))) {try{File.Delete(Path.Combine(dataDir,"stop.signal"));}catch{} Close();return;}
+      if(menu.IsOpen) {
+        var source=PresentationSource.FromVisual(menu) as HwndSource;IntPtr foreground=Native.GetForegroundWindow();
+        bool ownForeground=foreground==menuParent || foreground==handle || source!=null && foreground==source.Handle;
+        if(previewMode || ownForeground && menuParent!=IntPtr.Zero && Native.IsWindowVisible(menuParent) && !Native.IsIconic(menuParent)) {
+          // A popup has its own native window. Re-raising the strip would cover it,
+          // and moving its placement target would leave the popup behind.
+          Json.Write(Path.Combine(dataDir,"runtime.json"),new {visible=Native.IsWindowVisible(handle),menuOpen=true,pid=Process.GetCurrentProcess().Id,hwnd=handle.ToInt64(),updatedAt=DateTime.UtcNow.ToString("o")});return;
+        }
+        menu.IsOpen=false;
+      }
       if(drag.Active) {
         // Hold the window and its layout still even if accessibility data is briefly stale.
         Json.Write(Path.Combine(dataDir,"runtime.json"),new {visible=Native.IsWindowVisible(handle),dragging=true,pid=Process.GetCurrentProcess().Id,hwnd=handle.ToInt64(),updatedAt=DateTime.UtcNow.ToString("o")});return;

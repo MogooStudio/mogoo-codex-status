@@ -1,6 +1,6 @@
 {
   "name": "mogoo-codex-status",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -14,6 +14,7 @@
     "test": "node --test tests/*.test.mjs",
     "test:drag": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-native-drag.ps1",
     "test:skins": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-native-skins.ps1",
+    "test:menu": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-native-menu.ps1",
     "inspect": "node scripts/control.mjs inspect",
     "start": "node scripts/control.mjs start",
     "stop": "node scripts/control.mjs stop",
