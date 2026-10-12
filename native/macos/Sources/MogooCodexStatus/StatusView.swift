@@ -72,9 +72,8 @@ final class DragSurface: NSView {
     override func mouseDown(with event: NSEvent) {
         if event.clickCount == 2 { model?.refresh(); return }
         guard let model, let window else { return }
-        model.dragging = true
+        model.beginDrag()
         window.performDrag(with: event)
-        model.dragging = false; model.finishDrag()
     }
 }
 final class StatusHosting: NSHostingView<StatusView> {

@@ -27,6 +27,7 @@ final class StatusModel: ObservableObject {
     var parentFrame: NSRect?
     var selectedTitle = ""
     var timer: Timer?
+    var dragTimer: Timer?
     var worker: Process?
     var workerInput: Pipe?
     var workerOutput: Pipe?
@@ -111,6 +112,18 @@ final class StatusModel: ObservableObject {
         window.setFrameOrigin(NSPoint(x: x, y: parent.maxY - window.frame.height - 5))
         _ = save(["offsetRight": parent.maxX - x - window.frame.width, "offsetTop": 5])
     }
+    func beginDrag() {
+        dragging = true; dragTimer?.invalidate()
+        // AppKit's window-server drag returns immediately and may omit mouseUp.
+        // Keep automatic docking paused until the physical left button is released.
+        dragTimer = Timer(timeInterval: 0.02, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+            if NSEvent.pressedMouseButtons & 1 == 0 {
+                timer.invalidate(); self.dragTimer = nil; self.dragging = false; self.finishDrag()
+            }
+        }
+        RunLoop.main.add(dragTimer!, forMode: .common)
+    }
     func refresh() { Store.write(["at": Store.timestamp()], dataDir + "/refresh.json") }
     func runtime(_ visible: Bool, reason: String) {
         Store.write(["visible": visible, "reason": reason, "pid": Int(getpid()), "desktopPid": Int(desktopPid), "width": width, "height": compact ? 28 : 32, "displayMode": compact ? "compact" : "full", "updatedAt": Store.timestamp()], dataDir + "/runtime.json")
@@ -141,7 +154,7 @@ final class StatusModel: ObservableObject {
         try process.run(); worker = process; workerInput = input; workerOutput = output; workerError = error
     }
     func stop() {
-        timer?.invalidate(); try? workerInput?.fileHandleForWriting.write(contentsOf: Data("stop\n".utf8))
+        timer?.invalidate(); dragTimer?.invalidate(); try? workerInput?.fileHandleForWriting.write(contentsOf: Data("stop\n".utf8))
         if let worker {
             let deadline = Date().addingTimeInterval(2.5); while worker.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
             if worker.isRunning { worker.terminate() }
