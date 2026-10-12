@@ -30,10 +30,12 @@ final class WindowTitleReader {
                 let filter = SCContentFilter(desktopIndependentWindow: window)
                 let configuration = SCStreamConfiguration()
                 // 只采样标题栏；聊天正文位于该区域之外，图像仅在内存中处理。
-                configuration.sourceRect = CGRect(x: 0, y: 0, width: window.frame.width, height: 44)
+                // sourceRect 使用屏幕坐标，需要随窗口位置调整。
+                configuration.sourceRect = CGRect(x: window.frame.minX, y: window.frame.minY, width: window.frame.width, height: 44)
                 configuration.width = Int(window.frame.width * 2)
                 configuration.height = 88
                 configuration.showsCursor = false
+                configuration.ignoreShadowsSingleWindow = true
                 let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
                 try Task.checkCancellation()
                 let pixels = NSMutableData()
