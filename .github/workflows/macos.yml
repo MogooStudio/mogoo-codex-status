@@ -1,0 +1,42 @@
+name: Build macOS status strip
+on:
+  push:
+    branches: [master]
+    paths: ['native/macos/**', 'server/**', 'scripts/**', 'codex/hooks/**', 'package.json', '.github/workflows/macos.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: macos-status-build
+  cancel-in-progress: true
+jobs:
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test shared data and platform logic
+        run: node --test tests/*.test.mjs
+      - name: Build, sign and validate both Mac architectures
+        run: /bin/sh scripts/build-macos.sh
+      - name: Synchronize distributable plugin
+        run: |
+          node scripts/package-plugin.mjs --require-macos
+          node scripts/package-plugin.mjs --check --require-macos
+      - name: Commit verified macOS bundle and native previews
+        run: |
+          set -eu
+          task_remote=$(git ls-remote origin refs/heads/master | cut -f1)
+          if [ "$task_remote" != "$GITHUB_SHA" ]; then
+            echo 'A newer source commit exists; its build will publish the bundle.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add plugins/mogoo-codex-status docs/images/macos
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'build: bundle verified universal macOS status app [skip ci]'
+          git push origin HEAD:master

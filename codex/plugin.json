@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mogoo-codex-status",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "author": { "name": "mogoo" },
   "homepage": "https://github.com/MogooStudio/mogoo-codex-status",
   "repository": "https://github.com/MogooStudio/mogoo-codex-status",
@@ -14,7 +14,7 @@
       "developerName": "mogoo",
       "websiteURL": "https://github.com/MogooStudio/mogoo-codex-status",
       "shortDescription": "常驻状态条：上下文、限额与重置时间",
-      "longDescription": "Windows 本地状态条，信任插件 Hook 后，在 Codex 开始或恢复会话、提交普通消息时自动启动，跟随当前显示的聊天。显示上下文占用与容量、限额剩余比例和重置倒计时。无需每天手动打开；不注册 Windows 登录、开机启动或计划任务。需要 Node.js 22.13+，只读本地统计与官方限额接口。",
+      "longDescription": "macOS 与 Windows 本地状态条，信任插件 Hook 后，在会话开始或普通消息提交时自动启动，跟随 Codex 窗口。显示上下文占用与容量、限额剩余比例和重置倒计时，支持深浅皮肤与精简模式。macOS 首次使用需要辅助功能授权。无登录或开机启动项、计划任务或 LaunchAgent。需要 Node.js 22.13+。",
       "category": "Developer Tools",
       "capabilities": ["Read", "Write"],
       "defaultPrompt": ["安装并启用常驻 Codex 状态条"],

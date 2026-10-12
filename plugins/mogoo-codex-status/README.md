@@ -6,7 +6,7 @@
 
 ## 安装
 
-需要支持 `codex plugin` 命令的 Codex、Git、Windows 10/11 x64、.NET Framework 4.8 和 Node.js 22.13+。插件内置已构建的状态条和后台服务，不需要手动克隆仓库、pnpm 或编译。
+两个平台使用相同的安装方式，需要支持 `codex plugin` 命令的 Codex、Git 和 Node.js 22.13+。Windows 需要 Windows 10/11 x64 和 .NET Framework 4.8；macOS 需要 macOS 13+，应用包同时包含 Apple Silicon 与 Intel 架构。插件内置状态条和后台服务，不需要手动克隆仓库、pnpm、Xcode 或编译。
 
 直接从 GitHub 安装：
 
@@ -31,11 +31,11 @@ codex plugin add mogoo-codex-status@mogoo-codex-status --json
 
 ## 使用
 
-信任 Hook 后，正常发消息即可自动启动；运行中复用单实例。首次启动会把内置运行文件准备到 `%LOCALAPPDATA%\mogoo-codex-status\app`，皮肤、模式、位置与统计保存在上层目录，无需每天调用技能或打开页面。
+信任 Hook 后，正常发消息即可自动启动；运行中复用单实例。macOS 首次运行需按系统提示授予辅助功能权限，以只读获取 Codex 窗口位置和聊天标题。首次启动自动准备运行文件：Windows 为 `%LOCALAPPDATA%\mogoo-codex-status\app`，macOS 为 `~/Library/Application Support/mogoo-codex-status/app`，设置和统计在上层目录。
 
 SessionStart 对开始或恢复聊天提供补充触发，不保证仅打开首页立即显示。启动器不记录消息正文、不读取 Hook 提供的聊天记录路径、不向聊天添加内容；数据查询的 App Server 禁用 Hook，避免递归启动。
 
-自动启动实例跟随所属 Codex 桌面进程退出。插件不注册 Windows 登录或开机启动、启动文件夹、计划任务、服务或外部常驻启动监控器。
+自动启动实例跟随所属 Codex 桌面进程退出。插件不注册登录或开机启动、启动文件夹、计划任务、LaunchAgent、登录项、服务或外部常驻启动监控器。macOS 应用为本地签名，未公证；如系统提示首次运行批准，使用系统单独授权入口，无需关闭安全设置。
 
 需要暂停或恢复时，向 Agent 说明“暂停 mogoo-codex-status”或“恢复 mogoo-codex-status”。管理入口使用安装副本的 `scripts/control.mjs`：`stop` 暂停当前和后续自动启动，`start` 恢复，`prepare` 仅更新运行文件，`install` 准备并立即显示。皮肤、精简模式和位置会保留。
 

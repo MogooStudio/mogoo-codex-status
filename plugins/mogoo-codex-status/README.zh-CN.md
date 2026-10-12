@@ -6,7 +6,7 @@
 
 ![状态条预览](docs/images/status-strip.png)
 
-Codex 状态条。一次性信任插件 Hook 后，普通消息自动启动用量显示，无需斜杠命令或手动打开界面。启动只由 Codex 聊天事件触发，与 Windows 登录、开机启动无关。
+适用于 macOS 与 Windows 的 Codex 状态条。一次性信任插件 Hook 后，普通消息自动启动用量显示，无需斜杠命令或手动打开界面。启动只由 Codex 聊天事件触发，与系统登录、开机启动无关。
 
 ## 功能
 
@@ -22,7 +22,9 @@ Codex 状态条。一次性信任插件 Hook 后，普通消息自动启动用�
 
 ## 环境
 
-Windows 10/11 x64、.NET Framework 4.8 和 Node.js 22.13+。开发构建使用 Windows 自带 .NET Framework 编译器，不依赖 dotnet SDK 或前端依赖。聊天事件启动方案已在 Codex Desktop 26.1007.2314.0、Codex CLI 0.162.0-alpha.17.2 验证。
+- 两个平台均需 Git、支持 `codex plugin` 的 Codex 和 Node.js 22.13+。
+- Windows：Windows 10/11 x64、.NET Framework 4.8；界面使用 WPF。
+- macOS：macOS 13+，应用包包含 Apple Silicon 与 Intel 架构；界面使用 SwiftUI 和 AppKit。首次使用需按系统提示授予辅助功能权限，以读取 Codex 窗口位置和聊天标题，不读取消息正文。
 
 ## 安装
 
@@ -39,7 +41,7 @@ codex plugin marketplace add MogooStudio/mogoo-codex-status --json
 codex plugin add mogoo-codex-status@mogoo-codex-status --json
 ```
 
-需要支持 `codex plugin` 命令的 Codex、Git、Windows 10/11 x64、.NET Framework 4.8 和 Node.js 22.13+。插件内置构建好的原生状态条和后台服务，安装时无需手动克隆、pnpm 或构建。更新、从本地市场迁移与卸载见[插件说明](README.md)。
+两个平台使用相同的安装命令。插件内置构建好的原生状态条和后台服务，安装时无需手动克隆、pnpm、Xcode 或构建。更新、从本地市场迁移与卸载见[插件说明](README.md)。
 
 ## 使用
 
@@ -47,7 +49,7 @@ codex plugin add mogoo-codex-status@mogoo-codex-status --json
 
 SessionStart 对开始或恢复会话提供补充触发；保证的日常入口是普通消息，不承诺仅打开首页就立即显示。启动器不记录消息正文，不读取 Hook 传入的聊天记录路径，也不向聊天添加内容。账号限额查询使用禁用 Hook 的 App Server，避免递归启动。
 
-运行文件保存到 `%LOCALAPPDATA%\mogoo-codex-status\app`，设置和统计保存在上层目录。自动启动实例绑定发起启动的 Codex 桌面进程，该进程退出时状态条和它的统计后台一起退出。插件不会注册 Windows Run 项、启动文件夹、计划任务或服务，也没有登录后运行的监控器。插件更新后可运行 `prepare` 更新稳定运行目录，或让下一次聊天触发自动更新。
+Windows 运行目录为 `%LOCALAPPDATA%\mogoo-codex-status`，macOS 为 `~/Library/Application Support/mogoo-codex-status`；运行文件位于各自的 `app` 子目录，设置和统计在上层。自动启动实例绑定 Codex 桌面进程，该进程退出时状态条和统计后台一起退出。插件不会注册 Run 项、启动文件夹、计划任务、LaunchAgent、登录项或服务。插件更新后可运行 `prepare` 更新稳定运行目录，或让下一次聊天触发自动更新。
 
 需要暂停、恢复或卸载时，在聊天中要求管理 `mogoo-codex-status` 即可；这些操作会保留皮肤、模式和位置设置。右键“退出状态条”只结束当前实例，后续消息可再次拉起。
 
@@ -55,6 +57,7 @@ SessionStart 对开始或恢复会话提供补充触发；保证的日常入口�
 
 ```powershell
 pnpm build
+pnpm build:macos # 在安装 Xcode Command Line Tools 的 Mac 上执行
 pnpm test
 pnpm test:drag
 pnpm test:skins
@@ -76,6 +79,7 @@ pnpm marketplace:check
 - 上下文来自最近一次 `token_count` 上报，不是每个生成字符的实时值，也不保证与 Codex 原生保留空间计算完全一致。缺失数据不会当成 0%。
 - 可见标题重名时保留未知状态，不根据最近更新时间猜聊天。多个窗口时优先前台窗口；无法确定窗口时隐藏。
 - 窄窗口中可能收起重置文字，悬停查看完整信息。页面显示完整窗口数据时最多同时展示两个限额窗口；更多窗口在完整状态数据中保留。
-- 本版是 Windows 悬浮条，未向 Codex 原生界面注入元素。支持中文和英文的 Codex 模式标识；其他语言需适配。
+- 本版使用各平台原生悬浮窗，未向 Codex 原生界面注入元素。支持中文和英文的 Codex 模式标识；其他语言需适配。
+- macOS 应用使用本地临时签名，尚未公证；首次运行若出现安全提示，按系统提供的单独批准入口处理，无需关闭系统安全设置。
 
 [MIT](LICENSE)

@@ -35,6 +35,13 @@ namespace MogooCodexStatus {
     }
   }
   public static class Native {
+    public static Dictionary<string,object> DesktopInfo() {
+      var result=new Dictionary<string,object> {{"pid",0}};
+      foreach(var process in Process.GetProcesses())try {using(process) {
+        if((process.ProcessName=="ChatGPT" || process.ProcessName=="Codex") && process.MainWindowHandle!=IntPtr.Zero && process.MainModule.FileName.IndexOf("WindowsApps\\OpenAI.Codex_",StringComparison.OrdinalIgnoreCase)>=0) {result["pid"]=process.Id;return result;}
+      }}catch{}
+      return result;
+    }
     [StructLayout(LayoutKind.Sequential)] public struct Rect {public int Left,Top,Right,Bottom;}
     [StructLayout(LayoutKind.Sequential)] public struct ScreenPoint {public int X,Y;public ScreenPoint(int x,int y) {X=x;Y=y;}}
     public delegate bool EnumCallback(IntPtr window,IntPtr data);
@@ -469,6 +476,7 @@ namespace MogooCodexStatus {
     [STAThread] static int Main(string[] args) {
       var options=new Dictionary<string,string>();for(int i=0;i<args.Length;i++)if(args[i].StartsWith("--")) {string key=args[i].Substring(2);options[key]=i+1<args.Length && !args[i+1].StartsWith("--") ? args[++i] : "true";}
       if(options.ContainsKey("inspect")) {Json.Write(options["inspect"],Native.Inspect());return 0;}
+      if(options.ContainsKey("desktop-info")) {Json.Write(options["desktop-info"],Native.DesktopInfo());return 0;}
       string config;if(!options.TryGetValue("config",out config))return 2;
       var settings=Json.Read(config);string dataDir=Json.Text(settings,"dataDir");if(String.IsNullOrEmpty(dataDir))return 2;
       int desktopPid=0;if(options.ContainsKey("desktop-pid") && (!Int32.TryParse(options["desktop-pid"],out desktopPid) || desktopPid<=0))return 2;

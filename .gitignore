@@ -3,6 +3,8 @@ native/*.exe
 node_modules/
 .tmp/
 *.log
+/native/macos/.build/
+/native/macos/.swiftpm/
 
 # Machine-specific installation and verification records stay local.
 /docs/local-installation-note.md
