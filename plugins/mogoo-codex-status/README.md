@@ -31,7 +31,7 @@ codex plugin add mogoo-codex-status@mogoo-codex-status --json
 
 ## 使用
 
-信任 Hook 后，正常发消息即可自动启动；运行中复用单实例。macOS 首次运行需按系统提示授予辅助功能权限，以只读获取 Codex 窗口位置和聊天标题。首次启动自动准备运行文件：Windows 为 `%LOCALAPPDATA%\mogoo-codex-status\app`，macOS 为 `~/Library/Application Support/mogoo-codex-status/app`，设置和统计在上层目录。
+信任 Hook 后，正常发消息即可自动启动；运行中复用单实例。macOS 首次运行需按系统提示授予辅助功能权限，以只读获取 Codex 窗口位置和聊天标题。若当前应用未开放辅助功能标题，macOS 14+ 可使用标题栏识别，此时还需系统的屏幕录制权限。首次启动自动准备运行文件：Windows 为 `%LOCALAPPDATA%\mogoo-codex-status\app`，macOS 为 `~/Library/Application Support/mogoo-codex-status/app`，设置和统计在上层目录。
 
 SessionStart 对开始或恢复聊天提供补充触发，不保证仅打开首页立即显示。启动器不记录消息正文、不读取 Hook 提供的聊天记录路径、不向聊天添加内容；数据查询的 App Server 禁用 Hook，避免递归启动。
 
@@ -70,3 +70,9 @@ codex plugin marketplace remove mogoo-codex-status --json
 ```
 
 也可让 Agent 卸载：先使用安装副本的 `scripts/control.mjs uninstall` 停止组件并关闭聊天触发，再移除插件和市场。卸载保留用户设置；插件卸载后不再接收启动 Hook。
+
+## macOS 应用兼容
+
+通过 `com.openai.codex` 识别 Codex 桌面应用，兼容应用包名称为 ChatGPT.app 的版本，并优先使用当前应用内置的 CodexCLI 查询额度。
+
+辅助功能未提供文档标题时，macOS 14+ 仅在该应用前台读取顶部 44 点的标题栏图像，用本机 Vision 匹配聊天标题。图像只在内存中处理，不采样聊天正文、不保存截图。识别后按实际聊天 ID 读取最近的 Token 统计，支持切换聊天；截断标题只在唯一匹配时采用，重名或没有足够信息时保留未知状态。

@@ -26,6 +26,8 @@ export async function findCodex({platform=process.platform,home=os.homedir(),env
     const bundles=[bundlePath,'/Applications/Codex.app',path.join(home,'Applications','Codex.app')].filter(Boolean);
     for(const bundle of bundles) {
       const resources=path.join(bundle,'Contents','Resources');
+      const bundled=await executable(path.join(resources,'codex-cli','CodexCLI.app','Contents','MacOS','codex'));
+      if(bundled)return bundled;
       const queue=[{directory:resources,depth:0}];
       while(queue.length) {
         const {directory,depth}=queue.shift();const rows=await readdir(directory,{withFileTypes:true}).catch(()=>[]);

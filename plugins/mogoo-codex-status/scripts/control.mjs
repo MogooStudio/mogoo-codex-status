@@ -68,6 +68,7 @@ export async function control(command) {
   if(command==='prepare') {await prepare();return {status:'prepared',dataDir,startup:'codex-hooks'};}
   if(command==='install') {
     await prepare();const config=await setAutomatic(true);
+    delete config.boundThreadId;await writeJson(configPath,config);
     await launch(config);return {status:'installed',dataDir,startup:'codex-hooks',autoLaunchEnabled:true};
   }
   if(command==='start') {await prepare();const config=await setAutomatic(true);await launch(config);return {status:'started',dataDir,autoLaunchEnabled:true};}

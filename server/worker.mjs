@@ -34,9 +34,10 @@ async function tick() {
   const selection = await readJson(path.join(config.dataDir,'selection.json'));
   const fresh = selection && Date.now()-Date.parse(selection.updatedAt)<10000;
   let status='no-window', thread=null, context=null, snapshot=null;
-  if(fresh && selection.title && selection.codexMode) {
+  const header=fresh && selection.source==='header-ocr' && Array.isArray(selection.titleCandidates);
+  if(fresh && (header || (selection.title && selection.codexMode))) {
     try {
-      const selected = await registry.resolve(selection.title); status=selected.status; thread=selected.thread;
+      const selected = header ? await registry.resolveHeader(selection.titleCandidates) : await registry.resolve(selection.title); status=selected.status; thread=selected.thread;
       if(thread) {
         let reader=readers.get(thread.rollout_path);
         if(!reader) {reader=new UsageReader(thread.rollout_path);readers.set(thread.rollout_path,reader); if(readers.size>8) readers.delete(readers.keys().next().value);}
@@ -50,7 +51,7 @@ async function tick() {
   let activeQuota = latestQuota;
   if(snapshot?.updatedAt && (!activeQuota?.updatedAt || Date.parse(snapshot.updatedAt)>Date.parse(activeQuota.updatedAt))) activeQuota=snapshot;
   const limits=(activeQuota?.limits ?? []).map(w => ({...w,label:windowLabel(w.windowMinutes),stale:Date.now()-Date.parse(w.updatedAt)>120000,resetPending:w.resetsAt !== null && w.resetsAt*1000<=Date.now()}));
-  const state={version:1,updatedAt:new Date().toISOString(),selectedTitle:selection?.title ?? '',selectionStatus:status,thread:thread ? {id:thread.id,title:selection.title,model:thread.model} : null,context,limits};
+  const state={version:1,updatedAt:new Date().toISOString(),selectedTitle:selection?.title ?? '',selectionStatus:status,thread:thread ? {id:thread.id,title:header?(thread.name||selection.title):selection.title,model:thread.model} : null,context,limits};
   await writeJson(path.join(config.dataDir,'state.json'),state);
   return state;
 }

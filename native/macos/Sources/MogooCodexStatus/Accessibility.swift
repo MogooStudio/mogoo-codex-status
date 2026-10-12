@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Darwin
+import StatusCore
 
 struct WindowSnapshot {
     var title = ""
@@ -9,14 +10,20 @@ struct WindowSnapshot {
     var frame: NSRect?
     var reason = "no-window"
     var pid: pid_t = 0
+    var source: String?
+    var titleCandidates: [String]?
+    var windowId: CGWindowID?
     var json: [String: Any] {
-        ["title": title, "codexMode": codexMode, "foreground": foreground, "pid": Int(pid), "hwnd": Int(pid), "reason": reason, "updatedAt": Store.timestamp()]
+        var result: [String: Any] = ["title": title, "codexMode": codexMode, "foreground": foreground, "pid": Int(pid), "hwnd": Int(pid), "reason": reason, "updatedAt": Store.timestamp()]
+        if let source { result["source"] = source }
+        if let titleCandidates { result["titleCandidates"] = titleCandidates }
+        return result
     }
 }
 enum Accessibility {
     static func codexApplications() -> [NSRunningApplication] {
         NSWorkspace.shared.runningApplications.filter {
-            $0.bundleURL?.lastPathComponent == "Codex.app" && !$0.isTerminated
+            DesktopIdentity.isCodex(bundleIdentifier: $0.bundleIdentifier, bundleName: $0.bundleURL?.lastPathComponent) && !$0.isTerminated
         }
     }
     static func desktopInfo() -> [String: Any] {
@@ -50,6 +57,13 @@ enum Accessibility {
             AXValueGetValue(unsafeBitCast(raw, to: AXValue.self), .cgSize, &size)
         }
         guard size.width > 0 && size.height > 0 else { return result }
+        let rawFrame = CGRect(origin: point, size: size)
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        result.windowId = windows.first(where: { info in
+            guard info[kCGWindowOwnerPID as String] as? Int == Int(pid), info[kCGWindowLayer as String] as? Int == 0,
+                  let bounds = info[kCGWindowBounds as String] as? [String: Any], let frame = CGRect(dictionaryRepresentation: bounds as CFDictionary) else { return false }
+            return abs(frame.minX - rawFrame.minX) < 2 && abs(frame.minY - rawFrame.minY) < 2 && abs(frame.width - rawFrame.width) < 2 && abs(frame.height - rawFrame.height) < 2
+        })?[kCGWindowNumber as String] as? CGWindowID
         let primaryTop = NSScreen.screens.first?.frame.maxY ?? size.height
         result.frame = NSRect(x: point.x, y: primaryTop - point.y - size.height, width: size.width, height: size.height)
         let windowTitle = value(window, kAXTitleAttribute) as? String ?? ""

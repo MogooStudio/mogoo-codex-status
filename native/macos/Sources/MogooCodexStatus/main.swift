@@ -15,6 +15,21 @@ while index < CommandLine.arguments.count {
 if options["desktop-info"] != nil {
     let data = try JSONSerialization.data(withJSONObject: Accessibility.desktopInfo()); print(String(decoding: data, as: UTF8.self)); exit(0)
 }
+if let file = options["inspect-header"] {
+    let application = NSApplication.shared
+    application.setActivationPolicy(.prohibited)
+    let info = Accessibility.desktopInfo(); let pid = pid_t(info["pid"] as? Int ?? 0)
+    let snapshot = Accessibility.inspect(pid: pid)
+    let reader = WindowTitleReader()
+    guard let windowId = snapshot.windowId else { Store.write(snapshot.json, file); exit(1) }
+    reader.refresh(pid: pid, windowId: windowId)
+    let deadline = Date().addingTimeInterval(6)
+    let timer = Timer(timeInterval: 0.05, repeats: true) { timer in
+        if let titles = reader.titles { Store.write(["pid": Int(pid), "windowId": windowId, "titleCandidates": titles], file); timer.invalidate(); exit(0) }
+        if Date() > deadline { timer.invalidate(); exit(1) }
+    }
+    RunLoop.main.add(timer, forMode: .common); application.run()
+}
 if let file = options["inspect"] {
     let info = Accessibility.desktopInfo(); let pid = pid_t(info["pid"] as? Int ?? 0)
     Store.write(Accessibility.inspect(pid: pid).json, file); exit(0)

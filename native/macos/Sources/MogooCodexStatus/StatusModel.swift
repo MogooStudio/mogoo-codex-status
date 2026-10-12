@@ -32,6 +32,7 @@ final class StatusModel: ObservableObject {
     var workerInput: Pipe?
     var workerOutput: Pipe?
     var workerError: Pipe?
+    let titleReader = WindowTitleReader()
 
     init(configPath: String, desktopPid: pid_t, preview: Bool) {
         self.configPath = configPath; self.desktopPid = desktopPid; self.preview = preview
@@ -85,7 +86,7 @@ final class StatusModel: ObservableObject {
         guard let data = FileManager.default.contents(atPath: dataDir + "/state.json"), let state = try? JSONDecoder().decode(StatusState.self, from: data) else {
             context = nil; limits = []; selectionStatus = nil; stateFresh = false; layout(); return
         }
-        stateFresh = StatusFormat.fresh(state.updatedAt); selectedTitle = title
+        stateFresh = StatusFormat.fresh(state.updatedAt); selectedTitle = state.thread?.title ?? title
         context = stateFresh && (preview || state.selectedTitle == title) ? state.context : nil
         selectionStatus = state.selectionStatus; limits = state.limits ?? []; layout()
     }
@@ -133,15 +134,24 @@ final class StatusModel: ObservableObject {
         if desktopPid <= 0 || kill(desktopPid, 0) != 0 { runtime(false, reason: "codex-exited"); NSApplication.shared.terminate(nil); return }
         if FileManager.default.fileExists(atPath: dataDir + "/stop.signal") { try? FileManager.default.removeItem(atPath: dataDir + "/stop.signal"); NSApplication.shared.terminate(nil); return }
         if dragging { runtime(true, reason: "dragging"); return }
-        let snapshot = Accessibility.inspect(pid: desktopPid); Store.write(snapshot.json, dataDir + "/selection.json")
+        var snapshot = Accessibility.inspect(pid: desktopPid)
+        let config = Store.dictionary(configPath)
+        if !snapshot.foreground { titleReader.cancel() }
+        if !snapshot.codexMode, snapshot.foreground, let windowId = snapshot.windowId, #available(macOS 14, *), CGPreflightScreenCaptureAccess() {
+            titleReader.refresh(pid: desktopPid, windowId: windowId)
+            snapshot.source = "header-ocr"
+            snapshot.titleCandidates = titleReader.titles ?? []
+            snapshot.title = snapshot.titleCandidates?.first ?? ""
+            snapshot.reason = snapshot.title.isEmpty ? "title-unavailable" : "ready"
+        }
+        Store.write(snapshot.json, dataDir + "/selection.json")
         load(snapshot.title)
         guard snapshot.reason == "ready", let frame = snapshot.frame else { window?.orderOut(nil); runtime(false, reason: snapshot.reason); return }
         parentFrame = frame; width = Docking.width(parentWidth: frame.width, compact: compact, limits: limits.count); layout()
-        let config = Store.dictionary(configPath)
         let x = Docking.x(parentLeft: frame.minX, parentWidth: frame.width, width: width, desired: frame.maxX - width - Store.number(config["offsetRight"], fallback: 140))
         let height: Double = compact ? 28 : 32
         window?.setFrame(NSRect(x: x, y: frame.maxY - height - 5, width: width, height: height), display: true)
-        window?.orderFrontRegardless(); runtime(true, reason: "ready")
+        window?.orderFrontRegardless(); runtime(true, reason: snapshot.reason)
     }
     func startWorker() throws {
         let config = Store.dictionary(configPath); let process = Process(); let input = Pipe(); let output = Pipe(); let error = Pipe()
@@ -154,6 +164,7 @@ final class StatusModel: ObservableObject {
         try process.run(); worker = process; workerInput = input; workerOutput = output; workerError = error
     }
     func stop() {
+        titleReader.cancel()
         timer?.invalidate(); dragTimer?.invalidate(); try? workerInput?.fileHandleForWriting.write(contentsOf: Data("stop\n".utf8))
         if let worker {
             let deadline = Date().addingTimeInterval(2.5); while worker.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }

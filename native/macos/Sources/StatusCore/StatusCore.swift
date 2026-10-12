@@ -19,8 +19,13 @@ public struct StatusState: Codable {
     public let updatedAt: String?
     public let selectedTitle: String?
     public let selectionStatus: String?
+    public let thread: ThreadMetric?
     public let context: ContextMetric?
     public let limits: [LimitMetric]?
+}
+public struct ThreadMetric: Codable {
+    public let id: String
+    public let title: String?
 }
 public enum StatusFormat {
     public static func date(_ text: String?) -> Date? {

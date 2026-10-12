@@ -24,3 +24,13 @@ test('macOS chat hook selection is independent of prompt text and never uses com
   assert.deepEqual(hookEvent({hook_event_name:'SessionStart',source:'resume'}),{event:'SessionStart',source:'resume'});
   assert.equal(hookEvent({hook_event_name:'SessionStart',source:'compact'}),null);assert.equal(hookEvent({hook_event_name:'Stop'}),null);
 });
+test('macOS 优先使用当前 ChatGPT.app 内部嵌套的 CodexCLI',async()=>{
+  const directory=await mkdtemp(path.join(os.tmpdir(),'mogoo-status-platform-'));
+  try {
+    const bundle=path.join(directory,'ChatGPT.app');
+    const binary=path.join(bundle,'Contents','Resources','codex-cli','CodexCLI.app','Contents','MacOS','codex');
+    const fallback=path.join(directory,'old-cli','codex');
+    for(const file of [binary,fallback]) {await mkdir(path.dirname(file),{recursive:true});await writeFile(file,'fixture');await chmod(file,0o755);}
+    assert.equal(await findCodex({platform:'darwin',home:directory,env:{PATH:path.dirname(fallback)},bundlePath:bundle}),binary);
+  } finally {assert.equal(path.dirname(directory),os.tmpdir());assert.ok(path.basename(directory).startsWith('mogoo-status-platform-'));await rm(directory,{recursive:true,force:true});}
+});

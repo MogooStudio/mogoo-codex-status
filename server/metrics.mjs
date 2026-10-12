@@ -41,3 +41,27 @@ export function selectThread(threads, aliases, title) {
   if (matches.length === 1) return { status: 'matched', thread: matches[0] };
   return { status: matches.length ? 'ambiguous' : 'unknown', thread: null };
 }
+export function selectHeaderThread(threads, aliases, titles) {
+  const normalize=value=>withoutTitleTime(value).normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+  const labels=threads.flatMap(row=>row.name?[{id:row.id,text:normalize(row.name)}]:[])
+    .concat(aliases.map(row=>({id:row.id,text:normalize(row.thread_name)})));
+  const ids=new Set();let bestLength=-1;
+  for(const raw of titles) {
+    const title=normalize(raw.replace(/^[日目口□▢]\s+/u,''));
+    const exact=labels.filter(row=>row.text===title);
+    let matches=exact;
+    if(!matches.length && /[.。…⋯]{2,}$/.test(title)) {
+      const prefix=title.replace(/[.。…⋯]+$/,'');
+      if(prefix.length<12)continue;
+      matches=labels.filter(row=>{
+        const known=row.text.replace(/[.。…⋯]+$/,'');
+        return known.startsWith(prefix)||(known.length>=12 && /[.。…⋯]{2,}$/.test(row.text) && prefix.startsWith(known));
+      });
+    }
+    if(!matches.length||title.length<bestLength)continue;
+    if(title.length>bestLength) {ids.clear();bestLength=title.length;}
+    for(const row of matches)ids.add(row.id);
+  }
+  const matches=threads.filter(row=>ids.has(row.id));
+  return {status:matches.length===1?'matched':matches.length?'ambiguous':'unknown',thread:matches.length===1?matches[0]:null};
+}
