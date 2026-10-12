@@ -1,0 +1,27 @@
+{
+  "name": "mogoo-codex-status",
+  "version": "0.2.0",
+  "description": "自动常驻显示 Codex 当前聊天上下文占用、账号限额百分比及重置倒计时。",
+  "author": {
+    "name": "mogoo"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "mogoo-codex-status",
+    "developerName": "mogoo",
+    "shortDescription": "常驻状态条：上下文、限额与重置时间",
+    "longDescription": "Windows 本地状态条，信任插件 Hook 后，在 Codex 开始或恢复会话、提交普通消息时自动启动，跟随当前显示的聊天。显示上下文占用与容量、限额剩余比例和重置倒计时。无需每天手动打开；不注册 Windows 登录、开机启动或计划任务。需要 Node.js 22.13+，只读本地统计与官方限额接口。",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "安装并启用常驻 Codex 状态条"
+    ],
+    "brandColor": "#8ad4b1",
+    "composerIcon": "./assets/icon.svg"
+  }
+}

@@ -1,0 +1,9 @@
+/bin/
+native/*.exe
+node_modules/
+.tmp/
+*.log
+
+# Machine-specific installation and verification records stay local.
+/docs/local-installation-note.md
+/docs/native-hook-startup.md

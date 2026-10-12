@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>状态条 · 文本与信息层级</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%23343434'/%3E%3C/svg%3E">
+<style>
+  :root {color-scheme:dark;--canvas:#181918;--surface:#343434;--border:#3d3d3d;--text:#f3f3f3;--secondary:#bdbdbd;--line:#595959;--warning:#ffb480;--danger:#ff9c9c}
+  * {box-sizing:border-box}
+  body {margin:0;background:var(--canvas);color:var(--text);font:14px/1.6 "Segoe UI","Microsoft YaHei UI",sans-serif}
+  main {width:760px;margin:28px auto}
+  h1 {font-size:23px;font-weight:600;margin:0 0 6px}
+  .intro {margin:0 0 24px;color:#bcbfbc}
+  h2 {font-size:15px;font-weight:600;margin:0 0 8px}
+  p {margin:7px 0 0;color:#bcbfbc;font-size:13px}
+  section {margin:0 0 23px}
+  .stage {background:#242524;padding:16px 55px;border-radius:4px}
+  .strip {width:650px;height:32px;display:flex;align-items:center;gap:12px;padding:0 8px 0 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);font-size:13px;line-height:18px;white-space:nowrap;letter-spacing:0}
+  .group {display:flex;align-items:center;gap:6px;flex:none}
+  .secondary {color:var(--secondary)}
+  .value {font-weight:600;font-variant-numeric:tabular-nums}
+  .sep {height:12px;width:1px;flex:none;background:var(--line)}
+  .bar {width:30px;height:4px;border-radius:2px;background:#565656;overflow:hidden;margin-left:2px}
+  .bar i {display:block;height:100%;background:#dedede;border-radius:2px}
+  .quotas {gap:8px}
+  .quota {display:inline-flex;align-items:center;gap:4px}
+  .time {margin-left:auto}
+  .skin-icon {height:24px;width:24px;display:grid;place-items:center;flex:none;margin-left:auto;color:var(--secondary)}
+  .time+.skin-icon {margin-left:0}
+  .skin-icon svg {height:15px;width:15px}
+  .warning {color:var(--warning)}
+  .danger {color:var(--danger)}
+  .state-list {padding:13px 55px;background:#242524;border-radius:4px}
+  .state-list .strip {margin:8px 0}
+  .state-label {color:#bcbfbc;font-size:13px;margin:13px 0 5px}
+  .state-label:first-child {margin-top:0}
+  .compact {width:360px;gap:8px}
+  .state-list .compact {margin-bottom:0}
+  .compact .group {gap:4px}
+  .rules {border-top:1px solid #373937;padding-top:15px;margin:25px 0 0}
+  .rules p {margin:5px 0}
+  .chosen img {display:block;width:auto;height:32px;margin:8px auto}
+</style>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><symbol id="palette" viewBox="0 0 16 16"><path d="M8 1C4.1 1 1 4.1 1 8s3.1 7 7 7h1.2c1.1 0 1.7-1.2 1-2l-.5-.6c-.5-.6-.1-1.4.7-1.4H12c2.2 0 3-1.4 3-3 0-3.9-3.1-7-7-7M4.5 7v.1m2-2.6v.1M10 4.5v.1M12 7v.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></symbol></defs></svg>
+<main>
+  <h1>让每一个百分比、每一个重置时间都有归属</h1>
+  <p class="intro">已选 A，按“间隔平均、长度更短”落实到 0.1.6。下方保留首次比较的三版初稿。</p>
+  <section class="chosen">
+    <h2>选定 A · 实际原生布局</h2>
+    <div class="stage"><img src="../../images/skins/codex.png" alt="560px 双限额状态条"><img src="../../images/skins/codex-single.png" alt="480px 单限额状态条"></div>
+    <p>双限额 560px，单限额 480px；两处信息组间等宽留白，高度和字号保持不变。</p>
+  </section>
+  <section>
+    <h2>方案 A · 语义清楚（推荐）</h2>
+    <div class="stage"><div class="strip">
+      <div class="group" title="上下文已用 87,704 / 258,400 Token，最近上报的近似值"><span>上下文</span><span class="secondary">已用</span><span class="value">≈34%</span><span class="bar"><i style="width:33.94%"></i></span></div>
+      <span class="sep"></span>
+      <div class="group quotas"><span class="secondary">限额剩余</span><span class="quota"><span>5小时</span><b class="value">87%</b></span><span class="secondary">·</span><span class="quota"><span>7天</span><b class="value">24%</b></span></div>
+      <span class="sep"></span>
+      <div class="group time" title="5小时窗口于 10月10日 22:18（北京时间）重置；7天窗口于 10月14日 14:51 重置"><span class="secondary">5小时重置</span><span class="value">2小时18分</span></div>
+      <span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+    </div></div>
+    <p>上下文写明“已用”，账号限额写明“剩余”。右侧显示最近重置的那一档，并带上周期名称；具体日期放在悬停提示中。</p>
+  </section>
+  <section>
+    <h2>方案 B · 统一看余量</h2>
+    <div class="stage"><div class="strip">
+      <div class="group"><span>上下文余</span><span class="value">≈66%</span><span class="bar"><i style="width:66.06%"></i></span></div>
+      <span class="sep"></span>
+      <div class="group quotas"><span class="secondary">限额余</span><span class="quota"><span>5小时</span><b class="value">87%</b></span><span class="secondary">·</span><span class="quota"><span>7天</span><b class="value">24%</b></span></div>
+      <span class="sep"></span>
+      <div class="group time"><span class="secondary">5小时重置</span><span class="value">2小时18分</span></div>
+      <span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+    </div></div>
+    <p>所有百分比都表示剩余，数值越低越需要注意。上下文进度条也改为剩余容量，区别于目前的已用进度。</p>
+  </section>
+  <section>
+    <h2>方案 C · 每档限额与重置时间配对</h2>
+    <div class="stage"><div class="strip">
+      <div class="group"><span>上下文</span><span class="secondary">已用</span><span class="value">≈34%</span></div>
+      <span class="sep"></span>
+      <div class="group"><span>5小时余</span><b class="value">87%</b><span class="secondary">22:18 重置</span></div>
+      <span class="sep"></span>
+      <div class="group time"><span>7天余</span><b class="value">24%</b><span class="secondary">10/14 14:51 重置</span></div>
+      <span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+    </div></div>
+    <p>每档余量与它自己的重置时间相邻，适合关心具体时刻的人。当天只写时分，跨天加日期；倒计时放在悬停提示中。</p>
+  </section>
+  <section>
+    <h2>推荐方案的其他状态</h2>
+    <div class="state-list">
+      <div class="state-label">只提供 7天限额 · 不补出不存在的 5小时数据</div>
+      <div class="strip">
+        <div class="group"><span>上下文</span><span class="secondary">已用</span><span class="value">≈34%</span><span class="bar"><i style="width:33.94%"></i></span></div><span class="sep"></span>
+        <div class="group"><span class="secondary">限额剩余</span><span>7天</span><b class="value">24%</b></div><span class="sep"></span>
+        <div class="group time"><span class="secondary">7天重置</span><span class="value">3天18小时</span></div><span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+      </div>
+      <div class="state-label">高占用与低余量 · 用文字和颜色同时表达</div>
+      <div class="strip">
+        <div class="group"><span>上下文</span><span class="secondary">已用</span><span class="value danger">≈95%</span><span class="bar"><i style="width:95%;background:var(--danger)"></i></span></div><span class="sep"></span>
+        <div class="group quotas"><span class="secondary">限额剩余</span><span>5小时</span><b class="value danger">3%</b><span class="secondary">·</span><span>7天</span><b class="value">24%</b></div><span class="sep"></span>
+        <div class="group time"><span class="secondary">5小时重置</span><span class="value">18分钟</span></div><span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+      </div>
+      <div class="state-label">没有上报上下文 · 限额来自缓存</div>
+      <div class="strip">
+        <div class="group"><span>上下文</span><span class="secondary">等待上报</span></div><span class="sep"></span>
+        <div class="group"><span class="secondary">限额剩余</span><span>7天</span><b class="value">24%</b><span class="secondary">缓存</span></div><span class="sep"></span>
+        <div class="group time"><span class="secondary">7天重置</span><span class="value">3天18小时</span></div><span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+      </div>
+      <div class="state-label">窄窗口 · 保留语义，缩短时间单位，收起进度条</div>
+      <div class="strip compact">
+        <div class="group"><span>上下文</span><span class="secondary">已用</span><span class="value">≈34%</span></div>
+        <div class="group"><span>7天余</span><b class="value">24%</b></div>
+        <div class="group time"><span class="secondary">3天18h 重置</span></div>
+        <span class="skin-icon" aria-label="皮肤按钮"><svg><use href="#palette"/></svg></span>
+      </div>
+    </div>
+  </section>
+  <div class="rules">
+    <p>主信息：百分比。辅助信息：已用／剩余、周期、重置。字号保持 13px，数值用等宽数字；不靠缩小字号塞内容。</p>
+    <p>上下文显示近似值，详细 Token 数与上报时间放在提示中；限额按实际数据提供的周期显示。重置到点后写“待确认重置”。</p>
+    <p>静态文案设计预览，统一使用示例指标与 10月10日 20:00 的时间基准。布局未接入当前状态条。</p>
+  </div>
+</main>
+</html>

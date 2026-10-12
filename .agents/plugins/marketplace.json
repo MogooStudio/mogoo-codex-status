@@ -1,0 +1,20 @@
+{
+  "name": "mogoo-codex-status",
+  "interface": {
+    "displayName": "mogoo-codex-status"
+  },
+  "plugins": [
+    {
+      "name": "mogoo-codex-status",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mogoo-codex-status"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

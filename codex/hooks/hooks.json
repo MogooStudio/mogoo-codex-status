@@ -1,0 +1,22 @@
+{
+  "description": "会话开始或普通消息提交时自动启动 Codex 状态条，已运行时复用单实例。",
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "^(startup|resume)$",
+      "hooks": [{
+        "type": "command",
+        "command": "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"${PLUGIN_ROOT}/hooks/launch-status.ps1\"",
+        "commandWindows": "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"${PLUGIN_ROOT}/hooks/launch-status.ps1\"",
+        "timeout": 15
+      }]
+    }],
+    "UserPromptSubmit": [{
+      "hooks": [{
+        "type": "command",
+        "command": "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"${PLUGIN_ROOT}/hooks/launch-status.ps1\"",
+        "commandWindows": "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"${PLUGIN_ROOT}/hooks/launch-status.ps1\"",
+        "timeout": 15
+      }]
+    }]
+  }
+}

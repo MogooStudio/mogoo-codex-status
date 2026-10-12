@@ -1,0 +1,12 @@
+{
+  "name": "mogoo-codex-status",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "mogoo",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {}
+}

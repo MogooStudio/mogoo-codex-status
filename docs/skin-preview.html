@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mogoo-codex-status · Codex 浅色与深色</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%23343434'/%3E%3C/svg%3E">
+<style>
+  :root {color-scheme:light;--canvas:#fcfcfb;--text:#242629;--muted:#65686c;--line:#dedfdd}
+  * {box-sizing:border-box}
+  body {margin:0;background:var(--canvas);color:var(--text);font:14px/1.6 "Segoe UI","Microsoft YaHei UI",sans-serif}
+  main {width:700px;margin:30px auto}
+  h1 {margin:0 0 7px;font-size:24px;letter-spacing:-.5px;font-weight:600}
+  .intro {margin:0 0 25px;color:var(--muted)}
+  section {margin:0 0 20px}
+  .caption {display:flex;align-items:baseline;justify-content:space-between;margin:0 0 8px}
+  h2 {font-size:14px;font-weight:600;margin:0}
+  .caption p {font-size:12px;color:var(--muted);margin:0}
+  .default {color:var(--muted);font-weight:400;margin-left:8px;font-size:12px}
+  .stage {padding:19px 70px;border-radius:4px}
+  img {display:block;width:560px;height:32px}
+  .single {width:480px;margin:18px auto 0}
+  .compact {width:140px;height:28px;margin:18px auto 0}
+  .dark {background:#21252b}
+  .light {background:#f0f0f0}
+  a {color:#2c6654;text-underline-offset:3px}
+  footer {border-top:1px solid var(--line);margin-top:25px;padding-top:14px;color:var(--muted);font-size:12px}
+  footer p {margin:3px 0}
+</style>
+<main>
+  <h1>Codex 外形，浅色／深色</h1>
+  <p class="intro">参考 <a href="https://oil-oil.github.io/oil-git/">oil-git</a> 产品演示的两套配色，保留相同的圆角、字体与信息布局。</p>
+  <section>
+    <div class="caption"><h2>Codex 浅色</h2><p>近白表面、灰黑文字、沉静的绿</p></div>
+    <div class="stage light"><img src="images/skins/codex-light.png" alt="Codex 浅色双限额状态条"><img class="single" src="images/skins/codex-light-single.png" alt="Codex 浅色单限额状态条"><img class="compact" src="images/skins/codex-light-compact.png" alt="Codex 浅色精简模式"></div>
+  </section>
+  <section>
+    <div class="caption"><h2>Codex 深色<span class="default">默认</span></h2><p>石墨灰表面、浅灰文字、柔和的绿</p></div>
+    <div class="stage dark"><img src="images/skins/codex.png" alt="Codex 深色双限额状态条"><img class="single" src="images/skins/codex-single.png" alt="Codex 深色单限额状态条"><img class="compact" src="images/skins/codex-compact.png" alt="Codex 深色精简模式"></div>
+  </section>
+  <footer>
+    <p>上下文按“上下文 65% / 256k”显示已用比例与实际容量，近似值说明放入悬停提示；限额显示剩余比例；重置显示周期与倒计时，完整日期放入悬停提示。</p>
+    <p>仅保留两套皮肤。调色盘单击切换浅色／深色，右键直接选择，重启后保留选择。</p>
+    <p>点击左侧状态图标收起／展开；精简模式为 140×28px 胶囊。悬停文字查看详情，按住文字或空白处拖动。</p>
+    <p>双限额 560px、单限额 480px；统一 32px 高度、13px 字号、14px 圆角和顶部吸附。</p>
+    <p>以上由实际 WPF 控件渲染，使用同一组预览数据；运行时显示真实查询结果。</p>
+  </footer>
+</main>
+</html>
