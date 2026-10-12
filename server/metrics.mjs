@@ -26,7 +26,7 @@ export function windowLabel(minutes) {
   if (minutes % 60 === 0) return `${minutes/60}小时`;
   return `${minutes}分钟`;
 }
-export function withoutTitleTime(title) { return String(title ?? '').replace(/\s*·\s*\d{2}-\d{2}\s+\d{2}:\d{2}\s*$/, '').trim(); }
+export function withoutTitleTime(title) { return String(title ?? '').replace(/\s*[·•∙⋅・]\s*\d{2}-\d{2}\s+\d{2}:\d{2}\s*$/, '').trim(); }
 export function selectThread(threads, aliases, title) {
   if (!title?.trim()) return { status: 'unknown', thread: null };
   const exact = new Set();
@@ -42,12 +42,14 @@ export function selectThread(threads, aliases, title) {
   return { status: matches.length ? 'ambiguous' : 'unknown', thread: null };
 }
 export function selectHeaderThread(threads, aliases, titles) {
-  const normalize=value=>withoutTitleTime(value).normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+  const normalize=value=>withoutTitleTime(String(value??'').normalize('NFKC')
+    .replace(/^(?:\p{Extended_Pictographic}[\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]*|[日目口□▢]\s*\*?|\*)\s+/u,''))
+    .replace(/\s+/g,'').toLowerCase();
   const labels=threads.flatMap(row=>row.name?[{id:row.id,text:normalize(row.name)}]:[])
     .concat(aliases.map(row=>({id:row.id,text:normalize(row.thread_name)})));
   const ids=new Set();let bestLength=-1;
   for(const raw of titles) {
-    const title=normalize(raw.replace(/^[日目口□▢]\s+/u,''));
+    const title=normalize(raw);
     const exact=labels.filter(row=>row.text===title);
     let matches=exact;
     if(!matches.length && /[.。…⋯]{2,}$/.test(title)) {

@@ -30,3 +30,11 @@ test('窗口标题图像支持空格差异、截断和历史标题，重名时�
   assert.equal(selectHeaderThread(rows,[],['新建聊天']).thread,null);
   assert.equal(selectHeaderThread([...rows,{id:'other-install',name:'请帮我安装这个 Codex 插件：https://github.com/MogooStudio/oil-codex-title'}],[],[header,'请帮我安装这个Codex插件:https://github.com/MogooStudio/..']).thread?.id,'visible');
 });
+test('图标和日期分隔符的 OCR 差异仍匹配自动改名的聊天',()=>{
+  const rows=[{id:'visible',name:'🧩 mogoo-codex-status｜完整显示Codex状态 · 10-12 15:58'},{id:'background',name:'后台聊天'}];
+  const titles=['日* mogoo-codex-status | 完整显示Codex状态•10-12 13:56','* mogoo-codex-status | 完整显示Codex状态•10-12 13:56'];
+  assert.equal(selectHeaderThread(rows,[],titles).thread?.id,'visible');
+  assert.equal(selectHeaderThread(rows,[],['mogoo-codex-status | 完整显示Codex状态']).thread?.id,'visible');
+  assert.equal(selectHeaderThread([{id:'visible',name:'后来修改的标题'}],[{id:'visible',thread_name:rows[0].name}],titles).thread?.id,'visible');
+  assert.equal(selectHeaderThread([...rows,{id:'duplicate',name:'🔧 mogoo-codex-status｜完整显示Codex状态 · 10-12 16:00'}],[],titles).status,'ambiguous');
+});
