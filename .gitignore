@@ -5,6 +5,7 @@ node_modules/
 *.log
 /native/macos/.build/
 /native/macos/.swiftpm/
+/docs/designs/
 
 # Machine-specific installation and verification records stay local.
 /docs/local-installation-note.md
